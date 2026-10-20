@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { STATUSES, TASK_TYPES, formatDate } from '../data/taskModel.js'
 import { TEAM } from '../data/team.js'
+import { getDueState } from '../data/dueState.js'
 import Avatar from './Avatar.jsx'
+import DueBadge from './DueBadge.jsx'
 import TypeBadge, { TYPE_STYLES, TypeIcon } from './TypeBadge.jsx'
 
 // Shared input styling (DESIGN.md: calm, 1px subtle border, brand focus ring)
@@ -78,7 +80,11 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
           <TypeBadge type={form.type} />
         </div>
         {isEdit && (
-          <p className="mt-1 text-xs text-text-muted">Created {formatDate(task.createdDate)}</p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-xs text-text-muted">Created {formatDate(task.createdDate)}</p>
+            {/* M8: same due badge as the card */}
+            <DueBadge state={getDueState(task)} dueDate={task.dueDate} />
+          </div>
         )}
 
         <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-4">

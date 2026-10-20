@@ -5,6 +5,7 @@ import TeamStrip from './components/TeamStrip.jsx'
 import Toast from './components/Toast.jsx'
 import { createTask, seedTasks } from './data/taskModel.js'
 import { useLocalStorage } from './hooks/useLocalStorage.js'
+import { useNow } from './hooks/useNow.js'
 
 // Clean up whatever was loaded from storage; fall back to the seed if it isn't a list.
 function parseTasks(saved) {
@@ -17,6 +18,9 @@ const handOffMessage = (name) => `Passed to ${name}. It's on their page now.`
 export default function App() {
   // FR23: every change is saved to localStorage and reloaded on page open
   const [tasks, setTasks] = useLocalStorage('vibeboard.tasks', seedTasks, parseTasks)
+
+  // M8: ticks every minute so due colours update by themselves
+  const now = useNow()
 
   // null = closed, { mode: 'create' } or { mode: 'edit', taskId }
   const [modal, setModal] = useState(null)
@@ -87,6 +91,7 @@ export default function App() {
 
         <Board
           tasks={tasks}
+          now={now}
           onOpenTask={(id) => setModal({ mode: 'edit', taskId: id })}
           onStatusChange={changeStatus}
           onHandOff={handOff}

@@ -8,7 +8,7 @@
 export const TYPE_STYLES = {
   feature: {
     label: 'Feature',
-    text: 'text-type-feature',
+    text: 'text-type-feature-text',
     stripe: 'border-l-type-feature', // card left stripe
     topStripe: 'border-t-type-feature', // modal top stripe
     selected: 'border-type-feature ring-1 ring-type-feature',
