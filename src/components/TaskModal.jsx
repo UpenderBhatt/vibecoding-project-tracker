@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { STATUSES, TASK_TYPES, formatDate } from '../data/taskModel.js'
 import { TEAM } from '../data/team.js'
 import { getDueState } from '../data/dueState.js'
+import { CONTEXT_TEMPLATE, normalizeContext } from '../data/context.js'
+import { useNow } from '../hooks/useNow.js'
 import Avatar from './Avatar.jsx'
+import ContextField from './ContextField.jsx'
 import DueBadge from './DueBadge.jsx'
 import TypeBadge, { TYPE_STYLES, TypeIcon } from './TypeBadge.jsx'
 
@@ -20,6 +23,8 @@ const EMPTY_FORM = {
   status: 'todo', // FR9: new tasks default to To Do
   assignee: TEAM[0],
   dueDate: '',
+  context: CONTEXT_TEMPLATE, // M9: new tasks start with the template
+  contextTool: null,
 }
 
 // FR6 (create) and FR10 (edit) share this modal. `task` is null when creating.
@@ -29,6 +34,7 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
   const [error, setError] = useState('')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const titleRef = useRef(null)
+  const now = useNow() // keeps "Last updated … ago" fresh
 
   useEffect(() => {
     titleRef.current?.focus()
@@ -56,7 +62,20 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
       titleRef.current?.focus()
       return
     }
-    onSave({ ...form, title: form.title.trim(), dueDate: form.dueDate || null })
+
+    // FR18: stamp contextUpdatedAt automatically whenever the context or AI tool changed
+    const context = normalizeContext(form.context)
+    const contextTool = form.contextTool || null
+    const contextChanged = context !== (task?.context ?? '') || contextTool !== (task?.contextTool ?? null)
+
+    onSave({
+      ...form,
+      title: form.title.trim(),
+      dueDate: form.dueDate || null,
+      context,
+      contextTool,
+      contextUpdatedAt: contextChanged ? new Date().toISOString() : (task?.contextUpdatedAt ?? null),
+    })
   }
 
   return (
@@ -71,7 +90,7 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
         aria-modal="true"
         aria-labelledby="task-modal-title"
         // M6: top stripe in the type colour, matching the card's left stripe
-        className={`w-full max-w-md rounded-lg border border-t-[3px] border-border-subtle ${TYPE_STYLES[form.type].topStripe} bg-surface-card p-6 shadow-lg`}
+        className={`max-h-[92vh] w-full max-w-md overflow-y-auto rounded-lg border border-t-[3px] border-border-subtle ${TYPE_STYLES[form.type].topStripe} bg-surface-card p-6 shadow-lg`}
       >
         <div className="flex items-center justify-between gap-3">
           <h2 id="task-modal-title" className="font-heading text-xl font-semibold text-brand-primary">
@@ -209,6 +228,16 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
               />
             </div>
           </div>
+
+          {/* M9: FR17 context + AI tool, FR18 last-updated hint */}
+          <ContextField
+            value={form.context}
+            tool={form.contextTool}
+            updatedAt={task?.contextUpdatedAt ?? null}
+            now={now}
+            onChange={(value) => update('context', value)}
+            onToolChange={(value) => update('contextTool', value)}
+          />
 
           {/* Footer: NFR4 — delete asks for confirmation first */}
           {confirmingDelete ? (

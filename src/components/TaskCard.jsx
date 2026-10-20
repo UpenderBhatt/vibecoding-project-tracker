@@ -1,3 +1,4 @@
+import { formatRelative } from '../data/context.js'
 import { getDueState } from '../data/dueState.js'
 import { STATUSES } from '../data/taskModel.js'
 import { TEAM } from '../data/team.js'
@@ -50,10 +51,36 @@ export default function TaskCard({ task, now, onOpen, onStatusChange, onHandOff 
         </button>
       </h3>
 
-      {/* NFR6: due state shown with an icon and words, not just the tint */}
-      {due && (
-        <div className="mt-1.5">
+      {(due || task.context) && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+          {/* NFR6: due state shown with an icon and words, not just the tint */}
           <DueBadge state={due} dueDate={task.dueDate} />
+
+          {/* FR18 (M9): this task has saved context, and when it was last updated */}
+          {task.context && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-text-muted">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                className="h-3 w-3"
+              >
+                {/* Lucide "file-text" (ISC) */}
+                <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+                <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+                <path d="M10 9H8" />
+                <path d="M16 13H8" />
+                <path d="M16 17H8" />
+              </svg>
+              Context
+              {task.contextUpdatedAt && ` · ${formatRelative(task.contextUpdatedAt, now)}`}
+            </span>
+          )}
         </div>
       )}
 
