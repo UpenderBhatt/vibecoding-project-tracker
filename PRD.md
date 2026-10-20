@@ -29,6 +29,61 @@ A single-page web app with two persistent surfaces:
 
 Each task carries the prompt context that produced it, so any teammate can click a button and copy the task + prompt history back into an AI chat to continue work.
 
+## Functional requirements
+
+- FR1: System has to display tasks on a board with four columns labelled in order: To Do, In Progress, Review, Done.
+- FR2: System has to show each task as a card in the column matching its status.
+- FR3: Each task card has to show the title, type, assignee and the due date if set.
+- FR4: Each column has to show a count of the tasks it holds.
+- FR5: Empty column has to show placeholder text.
+- FR6: The user has to be able to create a task with a "+" button which opens a modal form.
+- FR7: The create task form needs to save the title, description, type, assignee, due date and context.
+- FR8: User cannot save a task without a title and the system should show an error if they try to.
+- FR9: New tasks should have default status of To Do.
+- FR10: Clicking on an existing task should open an editiable modal where user can change the values.
+- FR11: Tasks can be deleted using the delete button.
+- FR12: User can change a task's status using a status dropdown on the car which moves it to the matching column.
+- FR13: Each card should show a coloured left stripe and icon for its type (feature or bug).
+- FR14: Each card has to show its assignee.
+- FR15: The user should be able to hand a task to another team member from one dropdown on the card.
+- FR16: The card should have a red tint for tasks with less than 24 hours till due date, yellow for between 24 hours and 2 days, green for more than 2 days, blue for past the due date.
+- FR17: The task modal has to include a multi-line context field and an Ai tool used dropdown.
+- FR18: When the context is saved, the system has to record the save time automatically and show it on the task.
+- FR19: Each task should have a copy as prompt context button which copies the markdown block.
+- FR20: The system displays an anchor board above the kanban board with four fixed slots: presentation, demo, report and documentation.
+- FR21: The use should be able to add, edit and clear a link in each anchor slot.
+- FR22: A filled anchor slot opens its link in a new tab and an empty slot shows a placeholder to add one.
+- FR23: The system has to save every change to tasks and anchors to localStorage immediately and reload them when the page is opened.
+
+## Non-functional requirements
+- NFR1: The board should be interactive within 2 seconds of opening the webpage.
+- NFR2: Creating, editing, moving or deleting a task should update the board within 100ms with up to 100 tasks.
+- NFR3: A new user should be able to create a task and copy its context within 1 minute without instructions.
+- NFR4: Every destructive action (deleting a task or clearing an anchor link) has to ask for confirmation.
+- NFR5: Data should survive a page refresh, browser restart and a redeploy of the app.
+- NFR6: Type and due date must have icon and text so it doesn't rely just on colour
+- NFR7: All controls have to be usable by keyboard with a visible focus ring and the modal should close on esc.
+- NFR8: No task data should leave the user's browser.
+
+## Data requirements
+- Task entity:
+id (string)
+title (string)
+description (string)
+type ('feature' | 'bug')
+status ('todo' | 'in-progress' | 'review' | 'done')
+assignee (string)
+dueDate (date | null)
+createdDate (date)
+context (string)
+contextTool (string | null)
+contextUpdatedAt (string | null)
+
+- Anchor entity:
+id ('presentation'| 'demo' | 'report' | 'documentation')
+label (string)
+url (string | null)
+
 ## 4. Primary user flow
 
 1. Open the Webapp. The board loads from local storage.
@@ -167,3 +222,4 @@ The hackathon is "done" when all 13 milestone tags are pushed to your repo and v
 ---
 
 *PRD version: hackathon-starter v1 · maintained by Prof. Dr. Ignacio Alvarez*
+
