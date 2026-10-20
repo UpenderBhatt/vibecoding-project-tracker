@@ -1,6 +1,6 @@
 import TaskCard from './TaskCard.jsx'
 
-export default function Column({ label, tasks, now, onOpenTask, onStatusChange, onHandOff }) {
+export default function Column({ label, tasks, now, onOpenTask, onStatusChange, onHandOff, onCopy }) {
   return (
     <section className="flex min-h-[24rem] flex-col rounded-lg bg-border-subtle/40 p-3">
       <header className="mb-3 flex items-center justify-between px-1">
@@ -24,6 +24,7 @@ export default function Column({ label, tasks, now, onOpenTask, onStatusChange, 
               onOpen={onOpenTask}
               onStatusChange={onStatusChange}
               onHandOff={onHandOff}
+              onCopy={onCopy}
             />
           ))}
         </div>

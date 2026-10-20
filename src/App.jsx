@@ -6,6 +6,7 @@ import Toast from './components/Toast.jsx'
 import { createTask, seedTasks } from './data/taskModel.js'
 import { useLocalStorage } from './hooks/useLocalStorage.js'
 import { useNow } from './hooks/useNow.js'
+import { buildPromptContext, copyToClipboard } from './utils/promptContext.js'
 
 // Clean up whatever was loaded from storage; fall back to the seed if it isn't a list.
 function parseTasks(saved) {
@@ -36,9 +37,7 @@ export default function App() {
   // FR6 / FR7 / FR10: create or update a task from the modal
   function saveTask(fields) {
     if (modal?.mode === 'edit') {
-      setTasks((current) =>
-        current.map((t) => (t.id === modal.taskId ? createTask({ ...t, ...fields }) : t)),
-      )
+      setTasks((current) => current.map((t) => (t.id === modal.taskId ? createTask({ ...t, ...fields }) : t)))
       // M7: reassigning from the modal is acknowledged too
       if (editingTask && fields.assignee !== editingTask.assignee) {
         showToast(handOffMessage(fields.assignee))
@@ -64,6 +63,12 @@ export default function App() {
   function handOff(id, name) {
     setTasks((current) => current.map((t) => (t.id === id ? { ...t, assignee: name } : t)))
     showToast(handOffMessage(name))
+  }
+
+  // FR19 (M10): copy a task as a Markdown briefing, then confirm with a toast (DESIGN.md §5)
+  async function copyContext(task) {
+    const copied = await copyToClipboard(buildPromptContext(task, new Date()))
+    showToast(copied ? 'Copied. Go pick up where you left off.' : "Couldn't reach the clipboard. Try again.")
   }
 
   return (
@@ -95,6 +100,7 @@ export default function App() {
           onOpenTask={(id) => setModal({ mode: 'edit', taskId: id })}
           onStatusChange={changeStatus}
           onHandOff={handOff}
+          onCopy={copyContext}
         />
       </div>
 
@@ -105,6 +111,7 @@ export default function App() {
           onSave={saveTask}
           onDelete={deleteTask}
           onClose={closeModal}
+          onCopy={copyContext}
         />
       )}
 

@@ -1,7 +1,7 @@
 import { STATUSES } from '../data/taskModel.js'
 import Column from './Column.jsx'
 
-export default function Board({ tasks, now, onOpenTask, onStatusChange, onHandOff }) {
+export default function Board({ tasks, now, onOpenTask, onStatusChange, onHandOff, onCopy }) {
   return (
     <div className="grid grid-cols-4 gap-4">
       {STATUSES.map((status) => (
@@ -13,6 +13,7 @@ export default function Board({ tasks, now, onOpenTask, onStatusChange, onHandOf
           onOpenTask={onOpenTask}
           onStatusChange={onStatusChange}
           onHandOff={onHandOff}
+          onCopy={onCopy}
         />
       ))}
     </div>

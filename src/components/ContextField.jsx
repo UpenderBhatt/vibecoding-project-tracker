@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CONTEXT_TEMPLATE, formatRelative } from '../data/context.js'
 import { CONTEXT_TOOLS } from '../data/taskModel.js'
 import { renderMarkdown } from '../utils/markdown.js'
+import CopyContextButton from './CopyContextButton.jsx'
 
 const labelClass = 'mb-1 block text-xs font-medium text-text-muted'
 const fieldClass =
@@ -19,7 +20,7 @@ const previewClass =
   '[&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-surface-page [&_pre]:p-2'
 
 // FR17: multi-line Markdown context + AI tool dropdown. FR18: last-updated hint.
-export default function ContextField({ value, tool, updatedAt, now, onChange, onToolChange }) {
+export default function ContextField({ value, tool, updatedAt, now, onChange, onToolChange, onCopy }) {
   const [mode, setMode] = useState('write') // 'write' | 'preview'
 
   const tabClass = (active) =>
@@ -33,14 +34,29 @@ export default function ContextField({ value, tool, updatedAt, now, onChange, on
         <label htmlFor="task-context" className="text-sm font-semibold text-text-primary">
           Context
         </label>
-        {/* Stretch: Markdown preview */}
-        <div className="flex gap-1 rounded-md bg-border-subtle/60 p-0.5">
-          <button type="button" aria-pressed={mode === 'write'} onClick={() => setMode('write')} className={tabClass(mode === 'write')}>
-            Write
-          </button>
-          <button type="button" aria-pressed={mode === 'preview'} onClick={() => setMode('preview')} className={tabClass(mode === 'preview')}>
-            Preview
-          </button>
+        <div className="flex items-center gap-2">
+          {/* FR19 (M10): copy this task as a Markdown briefing */}
+          <CopyContextButton onClick={onCopy} className="py-1" />
+
+          {/* Stretch: Markdown preview */}
+          <div className="flex gap-1 rounded-md bg-border-subtle/60 p-0.5">
+            <button
+              type="button"
+              aria-pressed={mode === 'write'}
+              onClick={() => setMode('write')}
+              className={tabClass(mode === 'write')}
+            >
+              Write
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === 'preview'}
+              onClick={() => setMode('preview')}
+              className={tabClass(mode === 'preview')}
+            >
+              Preview
+            </button>
+          </div>
         </div>
       </div>
       <p id="task-context-hint" className="mb-2 text-xs text-text-muted">

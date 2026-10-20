@@ -14,7 +14,8 @@ const fieldClass =
   'w-full rounded-md border border-border-subtle bg-surface-page px-3 py-2 text-sm text-text-primary ' +
   'focus:outline-none focus:ring-2 focus:ring-brand-primary'
 const labelClass = 'mb-1 block text-xs font-medium text-text-muted'
-const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2'
+const focusRing =
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2'
 
 const EMPTY_FORM = {
   title: '',
@@ -28,7 +29,7 @@ const EMPTY_FORM = {
 }
 
 // FR6 (create) and FR10 (edit) share this modal. `task` is null when creating.
-export default function TaskModal({ task, onSave, onDelete, onClose }) {
+export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
   const isEdit = Boolean(task)
   const [form, setForm] = useState(() => (task ? { ...task, dueDate: task.dueDate ?? '' } : EMPTY_FORM))
   const [error, setError] = useState('')
@@ -237,6 +238,17 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
             now={now}
             onChange={(value) => update('context', value)}
             onToolChange={(value) => update('contextTool', value)}
+            // M10: copies what's in the form right now, including unsaved edits
+            onCopy={() =>
+              onCopy({
+                ...form,
+                title: form.title.trim() || 'Untitled task',
+                dueDate: form.dueDate || null,
+                context: normalizeContext(form.context),
+                contextTool: form.contextTool || null,
+                contextUpdatedAt: task?.contextUpdatedAt ?? null,
+              })
+            }
           />
 
           {/* Footer: NFR4 — delete asks for confirmation first */}
