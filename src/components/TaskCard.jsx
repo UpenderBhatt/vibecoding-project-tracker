@@ -1,4 +1,5 @@
 import { STATUSES, formatDate } from '../data/taskModel.js'
+import TypeBadge, { TYPE_STYLES } from './TypeBadge.jsx'
 
 function initials(name) {
   return name
@@ -9,18 +10,15 @@ function initials(name) {
     .toUpperCase()
 }
 
-const TYPE_TEXT = {
-  feature: 'text-type-feature',
-  bug: 'text-type-bug',
-}
-
 export default function TaskCard({ task, onOpen, onStatusChange }) {
   return (
-    <article className="relative rounded-lg border border-border-subtle bg-surface-card p-3 transition-shadow hover:shadow-sm">
-      <div className="flex items-start justify-between gap-2">
-        <span className={`font-mono text-[11px] uppercase tracking-wide ${TYPE_TEXT[task.type]}`}>
-          {task.type}
-        </span>
+    // FR13 / DESIGN.md §4: 3px left stripe in the type colour
+    <article
+      className={`relative rounded-lg border border-l-[3px] border-border-subtle ${TYPE_STYLES[task.type].stripe} bg-surface-card p-3 transition-shadow hover:shadow-sm`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        {/* FR13 / NFR6: icon + label in the corner, not colour alone */}
+        <TypeBadge type={task.type} />
 
         {/* FR12: status dropdown on the card moves it to the matching column */}
         <select

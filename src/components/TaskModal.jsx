@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { STATUSES, TASK_TYPES, formatDate } from '../data/taskModel.js'
 import { TEAM } from '../data/team.js'
+import TypeBadge, { TYPE_STYLES, TypeIcon } from './TypeBadge.jsx'
 
 // Shared input styling (DESIGN.md: calm, 1px subtle border, brand focus ring)
 const fieldClass =
@@ -66,11 +67,15 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="task-modal-title"
-        className="w-full max-w-md rounded-lg border border-border-subtle bg-surface-card p-6 shadow-lg"
+        // M6: top stripe in the type colour, matching the card's left stripe
+        className={`w-full max-w-md rounded-lg border border-t-[3px] border-border-subtle ${TYPE_STYLES[form.type].topStripe} bg-surface-card p-6 shadow-lg`}
       >
-        <h2 id="task-modal-title" className="font-heading text-xl font-semibold text-brand-primary">
-          {isEdit ? 'Edit task' : 'New task'}
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="task-modal-title" className="font-heading text-xl font-semibold text-brand-primary">
+            {isEdit ? 'Edit task' : 'New task'}
+          </h2>
+          <TypeBadge type={form.type} />
+        </div>
         {isEdit && (
           <p className="mt-1 text-xs text-text-muted">Created {formatDate(task.createdDate)}</p>
         )}
@@ -111,23 +116,38 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="task-type" className={labelClass}>
-                Type
-              </label>
-              <select
-                id="task-type"
-                value={form.type}
-                onChange={(e) => update('type', e.target.value)}
-                className={fieldClass}
-              >
-                {TASK_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type === 'feature' ? 'Feature' : 'Bug'}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* M6: type picker uses the same icon + colour as the card */}
+            <fieldset>
+              <legend className={labelClass}>Type</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {TASK_TYPES.map((type) => {
+                  const style = TYPE_STYLES[type]
+                  const selected = form.type === type
+                  return (
+                    <label key={type} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="task-type"
+                        value={type}
+                        checked={selected}
+                        onChange={() => update('type', type)}
+                        className="peer sr-only"
+                      />
+                      <span
+                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-sm font-medium peer-focus-visible:ring-2 peer-focus-visible:ring-brand-primary peer-focus-visible:ring-offset-2 ${
+                          selected
+                            ? `bg-surface-card ${style.selected} ${style.text}`
+                            : 'border-border-subtle bg-surface-page text-text-muted hover:text-text-primary'
+                        }`}
+                      >
+                        <TypeIcon type={type} className="h-4 w-4" />
+                        {style.label}
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+            </fieldset>
 
             <div>
               <label htmlFor="task-status" className={labelClass}>
