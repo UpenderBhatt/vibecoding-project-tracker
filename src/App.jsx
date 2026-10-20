@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react'
+import AnchorBoard from './components/AnchorBoard.jsx'
 import Board from './components/Board.jsx'
 import TaskModal from './components/TaskModal.jsx'
 import TeamStrip from './components/TeamStrip.jsx'
 import Toast from './components/Toast.jsx'
+import { createAnchors, parseAnchors } from './data/anchors.js'
 import { createTask, seedTasks } from './data/taskModel.js'
 import { useLocalStorage } from './hooks/useLocalStorage.js'
 import { useNow } from './hooks/useNow.js'
@@ -19,6 +21,11 @@ const handOffMessage = (name) => `Passed to ${name}. It's on their page now.`
 export default function App() {
   // FR23: every change is saved to localStorage and reloaded on page open
   const [tasks, setTasks] = useLocalStorage('vibeboard.tasks', seedTasks, parseTasks)
+
+  // FR20–FR23 (M11): the four deliverable links, saved to localStorage
+  const [anchors, setAnchors] = useLocalStorage('vibeboard.anchors', createAnchors, parseAnchors)
+  const saveAnchor = (id, url) =>
+    setAnchors((current) => current.map((a) => (a.id === id ? { ...a, url } : a)))
 
   // M8: ticks every minute so due colours update by themselves
   const now = useNow()
@@ -91,6 +98,8 @@ export default function App() {
             + New Task
           </button>
         </header>
+
+        <AnchorBoard anchors={anchors} onSave={saveAnchor} />
 
         <TeamStrip tasks={tasks} />
 
