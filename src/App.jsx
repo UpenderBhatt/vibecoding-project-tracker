@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
 import Board from './components/Board.jsx'
 import TaskModal from './components/TaskModal.jsx'
+import TeamStrip from './components/TeamStrip.jsx'
+import Toast from './components/Toast.jsx'
 import { createTask, seedTasks } from './data/taskModel.js'
 import { useLocalStorage } from './hooks/useLocalStorage.js'
 
@@ -8,6 +10,9 @@ import { useLocalStorage } from './hooks/useLocalStorage.js'
 function parseTasks(saved) {
   return Array.isArray(saved) ? saved.map(createTask) : seedTasks()
 }
+
+// DESIGN.md §5 handoff microcopy
+const handOffMessage = (name) => `Passed to ${name}. It's on their page now.`
 
 export default function App() {
   // FR23: every change is saved to localStorage and reloaded on page open
@@ -17,6 +22,11 @@ export default function App() {
   const [modal, setModal] = useState(null)
   const editingTask = modal?.mode === 'edit' ? tasks.find((t) => t.id === modal.taskId) : null
 
+  // Toast: { id, message } or null
+  const [toast, setToast] = useState(null)
+  const showToast = (message) => setToast({ id: Date.now(), message })
+  const clearToast = useCallback(() => setToast(null), [])
+
   const closeModal = useCallback(() => setModal(null), [])
 
   // FR6 / FR7 / FR10: create or update a task from the modal
@@ -25,6 +35,10 @@ export default function App() {
       setTasks((current) =>
         current.map((t) => (t.id === modal.taskId ? createTask({ ...t, ...fields }) : t)),
       )
+      // M7: reassigning from the modal is acknowledged too
+      if (editingTask && fields.assignee !== editingTask.assignee) {
+        showToast(handOffMessage(fields.assignee))
+      }
     } else {
       setTasks((current) => [...current, createTask(fields)])
     }
@@ -40,6 +54,12 @@ export default function App() {
   // FR12: status dropdown on the card
   function changeStatus(id, status) {
     setTasks((current) => current.map((t) => (t.id === id ? { ...t, status } : t)))
+  }
+
+  // FR15: hand off from the card's "Hand off to…" dropdown
+  function handOff(id, name) {
+    setTasks((current) => current.map((t) => (t.id === id ? { ...t, assignee: name } : t)))
+    showToast(handOffMessage(name))
   }
 
   return (
@@ -63,10 +83,13 @@ export default function App() {
           </button>
         </header>
 
+        <TeamStrip tasks={tasks} />
+
         <Board
           tasks={tasks}
           onOpenTask={(id) => setModal({ mode: 'edit', taskId: id })}
           onStatusChange={changeStatus}
+          onHandOff={handOff}
         />
       </div>
 
@@ -79,6 +102,11 @@ export default function App() {
           onClose={closeModal}
         />
       )}
+
+      {/* Screen readers announce whatever appears here */}
+      <div role="status" aria-live="polite">
+        {toast && <Toast key={toast.id} message={toast.message} onDone={clearToast} />}
+      </div>
     </div>
   )
 }

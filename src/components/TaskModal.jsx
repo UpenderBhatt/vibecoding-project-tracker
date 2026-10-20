@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { STATUSES, TASK_TYPES, formatDate } from '../data/taskModel.js'
 import { TEAM } from '../data/team.js'
+import Avatar from './Avatar.jsx'
 import TypeBadge, { TYPE_STYLES, TypeIcon } from './TypeBadge.jsx'
 
 // Shared input styling (DESIGN.md: calm, 1px subtle border, brand focus ring)
@@ -171,18 +172,22 @@ export default function TaskModal({ task, onSave, onDelete, onClose }) {
               <label htmlFor="task-assignee" className={labelClass}>
                 Assignee
               </label>
-              <select
-                id="task-assignee"
-                value={form.assignee}
-                onChange={(e) => update('assignee', e.target.value)}
-                className={fieldClass}
-              >
-                {TEAM.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+              {/* M7: same avatar as the card */}
+              <div className="flex items-center gap-2">
+                <Avatar name={form.assignee} size="sm" />
+                <select
+                  id="task-assignee"
+                  value={form.assignee}
+                  onChange={(e) => update('assignee', e.target.value)}
+                  className={fieldClass}
+                >
+                  {TEAM.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>

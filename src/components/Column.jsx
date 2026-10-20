@@ -1,6 +1,6 @@
 import TaskCard from './TaskCard.jsx'
 
-export default function Column({ label, tasks, onOpenTask, onStatusChange }) {
+export default function Column({ label, tasks, onOpenTask, onStatusChange, onHandOff }) {
   return (
     <section className="flex min-h-[24rem] flex-col rounded-lg bg-border-subtle/40 p-3">
       <header className="mb-3 flex items-center justify-between px-1">
@@ -17,7 +17,13 @@ export default function Column({ label, tasks, onOpenTask, onStatusChange }) {
       ) : (
         <div className="flex flex-col gap-3">
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onOpen={onOpenTask} onStatusChange={onStatusChange} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              onOpen={onOpenTask}
+              onStatusChange={onStatusChange}
+              onHandOff={onHandOff}
+            />
           ))}
         </div>
       )}
