@@ -1,4 +1,4 @@
-import { formatDate } from '../data/taskModel.js'
+import { STATUSES, formatDate } from '../data/taskModel.js'
 
 function initials(name) {
   return name
@@ -14,14 +14,40 @@ const TYPE_TEXT = {
   bug: 'text-type-bug',
 }
 
-export default function TaskCard({ task }) {
+export default function TaskCard({ task, onOpen, onStatusChange }) {
   return (
-    <article className="rounded-lg border border-border-subtle bg-surface-card p-3 transition-shadow hover:shadow-sm">
-      <span className={`font-mono text-[11px] uppercase tracking-wide ${TYPE_TEXT[task.type]}`}>
-        {task.type}
-      </span>
+    <article className="relative rounded-lg border border-border-subtle bg-surface-card p-3 transition-shadow hover:shadow-sm">
+      <div className="flex items-start justify-between gap-2">
+        <span className={`font-mono text-[11px] uppercase tracking-wide ${TYPE_TEXT[task.type]}`}>
+          {task.type}
+        </span>
 
-      <h3 className="mt-1 text-sm font-medium text-text-primary">{task.title}</h3>
+        {/* FR12: status dropdown on the card moves it to the matching column */}
+        <select
+          aria-label={`Status of ${task.title}`}
+          value={task.status}
+          onChange={(e) => onStatusChange(task.id, e.target.value)}
+          className="relative z-10 rounded-md border border-border-subtle bg-surface-page px-1.5 py-0.5 text-[11px] text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        >
+          {STATUSES.map((status) => (
+            <option key={status.id} value={status.id}>
+              {status.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* FR10: clicking the card opens it for editing. The ::after overlay makes the
+          whole card clickable while keeping a real, keyboard-focusable button (NFR7). */}
+      <h3 className="mt-1 text-sm font-medium text-text-primary">
+        <button
+          type="button"
+          onClick={() => onOpen(task.id)}
+          className="text-left after:absolute after:inset-0 after:rounded-lg focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-primary"
+        >
+          {task.title}
+        </button>
+      </h3>
 
       <div className="mt-3 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
