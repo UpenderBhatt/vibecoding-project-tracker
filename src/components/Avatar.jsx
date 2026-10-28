@@ -1,11 +1,18 @@
-import { TEAM } from '../data/team.js'
+import { createContext, useContext } from 'react'
 
-// M7: each teammate gets their own avatar colour, picked from the DESIGN.md
-// brand tokens, so you can tell whose task it is at a glance.
+// The current team's names, in the order they were added (FR15)
+export const TeamContext = createContext([])
+
+// Each teammate gets their own avatar colour from the DESIGN.md tokens, so you can
+// tell whose task it is at a glance. Colours repeat after six people.
+// Every pair passes 4.5:1 text contrast.
 const PERSON_STYLES = [
-  'bg-brand-primary text-surface-page', // first teammate: forest green
-  'bg-brand-accent text-text-primary', // second: amber
-  'bg-text-primary text-surface-page', // third: charcoal
+  'bg-brand-primary text-surface-page', // forest green
+  'bg-brand-accent text-text-primary', // amber
+  'bg-text-primary text-surface-page', // charcoal
+  'bg-type-bug text-surface-page', // plum
+  'bg-type-feature-text text-surface-page', // slate blue
+  'bg-due-safe-text text-surface-page', // sage
 ]
 
 const SIZES = {
@@ -15,16 +22,20 @@ const SIZES = {
 }
 
 export function initials(name) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  return (
+    name
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '?'
+  )
 }
 
 export default function Avatar({ name, size = 'md' }) {
-  const index = Math.max(TEAM.indexOf(name), 0)
+  const team = useContext(TeamContext)
+  const index = Math.max(team.indexOf(name), 0)
   return (
     <span
       aria-hidden="true"

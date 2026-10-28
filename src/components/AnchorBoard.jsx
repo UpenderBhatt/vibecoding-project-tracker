@@ -187,7 +187,8 @@ export default function AnchorBoard({ anchors, onSave }) {
         </h2>
         <p className="text-xs text-text-muted">{linked} of 4 linked</p>
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      {/* NFR13: one per row on phones, two on tablets, four on laptops */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {anchors.map((anchor) => (
           <AnchorCard key={anchor.id} anchor={anchor} onSave={onSave} />
         ))}

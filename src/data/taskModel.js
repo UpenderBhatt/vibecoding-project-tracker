@@ -1,5 +1,3 @@
-import { TEAM } from './team.js'
-
 /*
   Task = {
     id: string,
@@ -7,7 +5,7 @@ import { TEAM } from './team.js'
     description: string,
     type: 'feature' | 'bug',
     status: 'todo' | 'in-progress' | 'review' | 'done',
-    assignee: string,              // one of TEAM
+    assignee: string,              // a team member's name (FR15)
     dueDate: string | null,        // 'YYYY-MM-DD'
     createdDate: string,           // 'YYYY-MM-DD'
     context: string,               // M9
@@ -26,7 +24,8 @@ export const STATUSES = [
 
 export const TASK_TYPES = ['feature', 'bug']
 
-export const CONTEXT_TOOLS = ['Claude', 'ChatGPT', 'Cursor', 'Lovable', 'Replit', 'Other']
+// FR25: the AI tools offered in the dropdown
+export const CONTEXT_TOOLS = ['ChatGPT', 'Claude', 'Copilot', 'Other']
 
 const STATUS_IDS = STATUSES.map((s) => s.id)
 
@@ -71,7 +70,7 @@ export function createTask(fields = {}) {
     description: fields.description ?? '',
     type: TASK_TYPES.includes(fields.type) ? fields.type : 'feature',
     status: STATUS_IDS.includes(fields.status) ? fields.status : 'todo',
-    assignee: TEAM.includes(fields.assignee) ? fields.assignee : TEAM[0],
+    assignee: typeof fields.assignee === 'string' ? fields.assignee : '',
     dueDate: fields.dueDate ?? null,
     createdDate: fields.createdDate ?? todayISO(),
     context: fields.context ?? '',
@@ -80,40 +79,45 @@ export function createTask(fields = {}) {
   }
 }
 
-// Mock tasks so the board isn't empty on first load.
-export function seedTasks() {
+// Example tasks for a new account, so the board isn't empty and shows how it works.
+// Their due dates land in different tint states (FR16).
+export function seedTasks(ownerName) {
   return [
     createTask({
-      title: 'Set up Vite + Tailwind with design tokens',
-      description: 'Paste the DESIGN.md palette and fonts into tailwind.config.js.',
-      type: 'feature',
-      status: 'done',
-      assignee: TEAM[1],
-      dueDate: addDaysISO(-1),
-    }),
-    createTask({
-      title: 'Build the four-column board',
-      description: 'Task model, columns and cards for M4.',
-      type: 'feature',
-      status: 'in-progress',
-      assignee: TEAM[0],
-      dueDate: addDaysISO(0),
-    }),
-    createTask({
-      title: 'Draft the Copy as Prompt Context template',
-      description: 'Markdown layout for the M10 copy button.',
+      title: 'Add your teammates',
+      description: 'Use "+ Add member" above the board. New people show up in every assignee list.',
       type: 'feature',
       status: 'todo',
-      assignee: TEAM[2],
-      dueDate: addDaysISO(3),
+      assignee: ownerName,
+      dueDate: addDaysISO(4),
     }),
     createTask({
-      title: 'Fonts flash before loading',
-      description: 'Headings render in Georgia for a moment on first load.',
+      title: 'Drag this card to In Progress',
+      description: 'Drag cards between columns, or use the status dropdown on the card.',
+      type: 'feature',
+      status: 'todo',
+      assignee: ownerName,
+      dueDate: addDaysISO(1),
+    }),
+    createTask({
+      title: 'Copy this task into your AI chat',
+      description: 'Press Copy Context, then paste into ChatGPT, Claude or Copilot.',
+      type: 'feature',
+      status: 'in-progress',
+      assignee: ownerName,
+      dueDate: addDaysISO(0),
+      context:
+        '## Background\n- Vibe Board keeps the prompt context with each task\n\n## Pick up\n- Paste this into an AI chat and ask it to continue',
+      contextTool: 'Claude',
+      contextUpdatedAt: new Date().toISOString(),
+    }),
+    createTask({
+      title: 'Example bug: header overlaps on small screens',
+      description: 'Shows what an overdue bug looks like.',
       type: 'bug',
       status: 'review',
-      assignee: TEAM[1],
-      dueDate: addDaysISO(1),
+      assignee: ownerName,
+      dueDate: addDaysISO(-1),
     }),
   ]
 }

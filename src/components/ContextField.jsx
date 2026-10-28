@@ -30,7 +30,7 @@ export default function ContextField({ value, tool, updatedAt, now, onChange, on
 
   return (
     <div className="rounded-lg border border-border-subtle bg-surface-page/60 p-3">
-      <div className="mb-1 flex items-center justify-between gap-2">
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <label htmlFor="task-context" className="text-sm font-semibold text-text-primary">
           Context
         </label>
@@ -88,7 +88,7 @@ export default function ContextField({ value, tool, updatedAt, now, onChange, on
         </button>
       )}
 
-      <div className="mt-3 flex items-end justify-between gap-3">
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <div className="w-40">
           <label htmlFor="task-context-tool" className={labelClass}>
             AI tool <span className="font-normal">(optional)</span>
@@ -100,11 +100,14 @@ export default function ContextField({ value, tool, updatedAt, now, onChange, on
             className={`${fieldClass} bg-surface-card py-1.5`}
           >
             <option value="">None</option>
-            {CONTEXT_TOOLS.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
+            {/* FR25. A tool saved before the list changed (e.g. Cursor) stays selectable so it isn't lost. */}
+            {(tool && !CONTEXT_TOOLS.includes(tool) ? [...CONTEXT_TOOLS, tool] : CONTEXT_TOOLS).map(
+              (name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ),
+            )}
           </select>
         </div>
 

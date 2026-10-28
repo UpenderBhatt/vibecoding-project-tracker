@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { STATUSES, TASK_TYPES, formatDate } from '../data/taskModel.js'
-import { TEAM } from '../data/team.js'
 import { getDueState } from '../data/dueState.js'
 import { CONTEXT_TEMPLATE, normalizeContext } from '../data/context.js'
 import { useNow } from '../hooks/useNow.js'
-import Avatar from './Avatar.jsx'
+import Avatar, { TeamContext } from './Avatar.jsx'
 import ContextField from './ContextField.jsx'
 import DueBadge from './DueBadge.jsx'
 import TypeBadge, { TYPE_STYLES, TypeIcon } from './TypeBadge.jsx'
@@ -17,21 +16,31 @@ const labelClass = 'mb-1 block text-xs font-medium text-text-muted'
 const focusRing =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2'
 
-const EMPTY_FORM = {
+const emptyForm = (assignee) => ({
   title: '',
   description: '',
   type: 'feature',
   status: 'todo', // FR9: new tasks default to To Do
-  assignee: TEAM[0],
+  assignee,
   dueDate: '',
   context: CONTEXT_TEMPLATE, // M9: new tasks start with the template
   contextTool: null,
-}
+})
 
 // FR6 (create) and FR10 (edit) share this modal. `task` is null when creating.
-export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
+// FR24: Cancel, Esc or clicking outside closes it and throws away anything not saved,
+// because the form is a separate copy that is only written to the board on save.
+export default function TaskModal({ task, defaultAssignee, onSave, onDelete, onClose, onCopy }) {
   const isEdit = Boolean(task)
-  const [form, setForm] = useState(() => (task ? { ...task, dueDate: task.dueDate ?? '' } : EMPTY_FORM))
+  const team = useContext(TeamContext)
+  const [form, setForm] = useState(() =>
+    task
+      ? { ...task, dueDate: task.dueDate ?? '' }
+      : emptyForm(team.includes(defaultAssignee) ? defaultAssignee : (team[0] ?? '')),
+  )
+  // FR15: everyone on the team, plus the current assignee if they're no longer listed
+  const assigneeOptions = form.assignee && !team.includes(form.assignee) ? [...team, form.assignee] : team
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const titleRef = useRef(null)
@@ -55,8 +64,9 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
     if (field === 'title' && error) setError('')
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    if (saving) return
     // FR8: no saving without a title
     if (!form.title.trim()) {
       setError('Add a title to save this task.')
@@ -69,7 +79,9 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
     const contextTool = form.contextTool || null
     const contextChanged = context !== (task?.context ?? '') || contextTool !== (task?.contextTool ?? null)
 
-    onSave({
+    // Waits for the backend; if the save fails the modal stays open so nothing typed is lost (NFR9)
+    setSaving(true)
+    await onSave({
       ...form,
       title: form.title.trim(),
       dueDate: form.dueDate || null,
@@ -77,6 +89,7 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
       contextTool,
       contextUpdatedAt: contextChanged ? new Date().toISOString() : (task?.contextUpdatedAt ?? null),
     })
+    setSaving(false)
   }
 
   return (
@@ -91,7 +104,7 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
         aria-modal="true"
         aria-labelledby="task-modal-title"
         // M6: top stripe in the type colour, matching the card's left stripe
-        className={`max-h-[92vh] w-full max-w-md overflow-y-auto rounded-lg border border-t-[3px] border-border-subtle ${TYPE_STYLES[form.type].topStripe} bg-surface-card p-6 shadow-lg`}
+        className={`max-h-[92vh] w-full max-w-md overflow-y-auto rounded-lg border border-t-[3px] border-border-subtle ${TYPE_STYLES[form.type].topStripe} bg-surface-card p-5 shadow-lg sm:p-6`}
       >
         <div className="flex items-center justify-between gap-3">
           <h2 id="task-modal-title" className="font-heading text-xl font-semibold text-brand-primary">
@@ -100,7 +113,7 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
           <TypeBadge type={form.type} />
         </div>
         {isEdit && (
-          <div className="mt-1 flex items-center gap-2">
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <p className="text-xs text-text-muted">Created {formatDate(task.createdDate)}</p>
             {/* M8: same due badge as the card */}
             <DueBadge state={getDueState(task)} dueDate={task.dueDate} />
@@ -142,7 +155,7 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* M6: type picker uses the same icon + colour as the card */}
             <fieldset>
               <legend className={labelClass}>Type</legend>
@@ -200,14 +213,14 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
               </label>
               {/* M7: same avatar as the card */}
               <div className="flex items-center gap-2">
-                <Avatar name={form.assignee} size="sm" />
+                <Avatar name={form.assignee || '?'} size="sm" />
                 <select
                   id="task-assignee"
                   value={form.assignee}
                   onChange={(e) => update('assignee', e.target.value)}
                   className={fieldClass}
                 >
-                  {TEAM.map((name) => (
+                  {assigneeOptions.map((name) => (
                     <option key={name} value={name}>
                       {name}
                     </option>
@@ -253,7 +266,7 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
 
           {/* Footer: NFR4 — delete asks for confirmation first */}
           {confirmingDelete ? (
-            <div className="flex items-center justify-between gap-3 rounded-md bg-due-warning-bg px-3 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-due-warning-bg px-3 py-3">
               <p className="text-sm text-text-primary">Delete this task? There's no undo.</p>
               <div className="flex shrink-0 gap-2">
                 <button
@@ -273,7 +286,7 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap-reverse items-center justify-between gap-2 pt-2">
               {isEdit ? (
                 <button
                   type="button"
@@ -295,9 +308,10 @@ export default function TaskModal({ task, onSave, onDelete, onClose, onCopy }) {
                 </button>
                 <button
                   type="submit"
-                  className={`rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-surface-page hover:bg-brand-primary/90 ${focusRing}`}
+                  disabled={saving}
+                  className={`rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-surface-page hover:bg-brand-primary/90 disabled:opacity-60 ${focusRing}`}
                 >
-                  {isEdit ? 'Save changes' : 'Add task'}
+                  {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add task'}
                 </button>
               </div>
             </div>
